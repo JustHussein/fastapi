@@ -1,0 +1,8 @@
+{
+    "ServerConfig":{
+        "server_name":"192.168.102.135",
+        "dbname_name":"testgo",
+        "username":"sa",
+        "password":"test123"
+    }
+}
