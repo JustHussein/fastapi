@@ -1,0 +1,40 @@
+import subprocess
+import win32print
+import time
+
+
+def print_to_specific_printer(printer_name, content):
+    hprinter = win32print.OpenPrinter(printer_name)
+    printer_info = win32print.GetPrinter(hprinter, 2)
+    hprinter_job = win32print.StartDocPrinter(
+        hprinter, 1, ("Test Print", None, "RAW"))
+
+    win32print.StartPagePrinter(hprinter)
+    win32print.WritePrinter(hprinter, content.encode("utf-8"))
+    win32print.EndPagePrinter(hprinter)
+
+    win32print.EndDocPrinter(hprinter)
+    win32print.ClosePrinter(hprinter)
+
+
+def cancel_print_jobs_by_printer(specific_printer_name):
+    powershell_command = f"Get-WmiObject -Query \"Select * From Win32_PrintJob\" | ForEach-Object {{ $_.Delete() }}"
+    # print(powershell_command)
+    try:
+        subprocess.run(
+            ["powershell", "-Command", powershell_command], capture_output=True)
+        print("ok")
+    except:
+        print("ERROR")
+
+
+specific_printer_name = ["BIXOLON SRP-F312II", "BIXOLON"]
+
+content_to_print = "Hello, Printer!"
+
+for j in range(len(specific_printer_name)):
+    time.sleep(3)
+    for i in range(len(specific_printer_name)):
+        # print(specific_printer_name[i], content_to_print)
+        cancel_print_jobs_by_printer(specific_printer_name[i])
+        print_to_specific_printer(specific_printer_name[i], content_to_print)
