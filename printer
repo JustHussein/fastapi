@@ -1,20 +1,8 @@
 import subprocess
 import win32print
 import time
-
-
-def print_to_specific_printer(printer_name, content):
-    hprinter = win32print.OpenPrinter(printer_name)
-    printer_info = win32print.GetPrinter(hprinter, 2)
-    hprinter_job = win32print.StartDocPrinter(
-        hprinter, 1, ("Test Print", None, "RAW"))
-
-    win32print.StartPagePrinter(hprinter)
-    win32print.WritePrinter(hprinter, content.encode("utf-8"))
-    win32print.EndPagePrinter(hprinter)
-
-    win32print.EndDocPrinter(hprinter)
-    win32print.ClosePrinter(hprinter)
+import win32ui
+import win32con
 
 
 def cancel_print_jobs_by_printer(specific_printer_name):
@@ -28,13 +16,38 @@ def cancel_print_jobs_by_printer(specific_printer_name):
         print("ERROR")
 
 
-specific_printer_name = ["BIXOLON SRP-F312II", "BIXOLON"]
+def print_test_page(printer_name):
+    hprinter = win32print.OpenPrinter(printer_name)
+    try:
+        hdc = win32ui.CreateDC()
+        hdc.CreatePrinterDC(printer_name)
 
-content_to_print = "Hello, Printer!"
+        # Get the printer information
+        printer_info = win32print.GetPrinter(hprinter, 2)
+        printer_info['pDevMode'].Orientation = win32con.DMORIENT_LANDSCAPE
 
-for j in range(len(specific_printer_name)):
+        # Start printing
+        hdc.StartDoc("Test Page")
+        hdc.StartPage()
+
+        # Print text on the page
+        hdc.TextOut(100, 30, time.ctime())
+
+        # End the page and the print job
+        hdc.EndPage()
+        hdc.EndDoc()
+
+    finally:
+        win32print.ClosePrinter(hprinter)
+
+
+specific_printer_name = ["BIXOLON SRP-F312II"]
+
+
+for j in range(10):
     time.sleep(3)
+    cancel_print_jobs_by_printer(specific_printer_name[0])
     for i in range(len(specific_printer_name)):
-        # print(specific_printer_name[i], content_to_print)
-        cancel_print_jobs_by_printer(specific_printer_name[i])
-        print_to_specific_printer(specific_printer_name[i], content_to_print)
+        print_test_page(specific_printer_name[0])
+
+        # print(time.ctime())
